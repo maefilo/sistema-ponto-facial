@@ -593,10 +593,12 @@ async function handleRemoveStudentFromClass(studentId) {
 // =============================================
 // AUTH / LOGIN
 // =============================================
+let loginEmail = '';
+
 function showLoginScreen() {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
-    startLoginCamera();
+    resetLoginSteps();
 }
 
 function showMainApp() {
@@ -604,6 +606,35 @@ function showMainApp() {
     document.getElementById('mainApp').style.display = 'flex';
     if (loginCamera) loginCamera.stop();
     navigateTo('home');
+}
+
+function resetLoginSteps() {
+    document.getElementById('loginStepEmail').style.display = 'block';
+    document.getElementById('loginStepAuth').style.display = 'none';
+    document.getElementById('loginStepFace').style.display = 'none';
+    document.getElementById('loginStepPassword').style.display = 'none';
+    document.getElementById('registerAdminContent').style.display = 'none';
+    document.getElementById('loginFooter').style.display = 'block';
+    document.getElementById('loginEmailInput').value = '';
+    if (loginCamera) loginCamera.stop();
+}
+
+function showStep(stepId) {
+    ['loginStepEmail', 'loginStepAuth', 'loginStepFace', 'loginStepPassword', 'registerAdminContent'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+    });
+    document.getElementById(stepId).style.display = 'block';
+    if (stepId === 'registerAdminContent') {
+        document.getElementById('loginFooter').style.display = 'none';
+    } else {
+        document.getElementById('loginFooter').style.display = 'block';
+    }
+}
+
+function setUserLabels(prefix) {
+    const initial = loginEmail.charAt(0).toUpperCase();
+    document.getElementById(`${prefix}UserAvatar`).textContent = initial;
+    document.getElementById(`${prefix}UserName`).textContent = loginEmail;
 }
 
 async function startLoginCamera() {
@@ -614,6 +645,35 @@ async function startLoginCamera() {
         );
     }
     await loginCamera.start();
+}
+
+async function handleCheckEmail() {
+    const email = document.getElementById('loginEmailInput').value.trim();
+    if (!email) {
+        showToast('Digite seu email', 'error');
+        return;
+    }
+
+    try {
+        const result = await api.checkEmail(email);
+        loginEmail = email;
+        setUserLabels('user');
+        setUserLabels('face');
+        setUserLabels('pass');
+        showStep('loginStepAuth');
+    } catch (err) {
+        showToast(err.data?.detail || 'Email não encontrado', 'error');
+    }
+}
+
+function handleChooseFace() {
+    showStep('loginStepFace');
+    startLoginCamera();
+}
+
+function handleChoosePassword() {
+    showStep('loginStepPassword');
+    document.getElementById('loginPassword').focus();
 }
 
 async function handleLoginFace() {
@@ -647,11 +707,10 @@ async function handleLoginFace() {
 
 async function handleLoginPassword(e) {
     e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
     try {
-        const result = await api.loginAdmin({ email, password });
+        const result = await api.loginAdmin({ email: loginEmail, password });
         adminToken = result.token;
         adminData = result.admin;
         localStorage.setItem('adminToken', adminToken);
@@ -776,36 +835,32 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('classForm').addEventListener('submit', handleCreateClass);
 
     // Login
+    document.getElementById('checkEmailBtn').addEventListener('click', handleCheckEmail);
+    document.getElementById('loginEmailInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleCheckEmail();
+    });
+    document.getElementById('chooseFaceBtn').addEventListener('click', handleChooseFace);
+    document.getElementById('choosePasswordBtn').addEventListener('click', handleChoosePassword);
     document.getElementById('loginFaceBtn').addEventListener('click', handleLoginFace);
     document.getElementById('loginForm').addEventListener('submit', handleLoginPassword);
     document.getElementById('registerAdminForm').addEventListener('submit', handleRegisterAdmin);
 
-    // Login tabs
-    document.getElementById('tabFace').addEventListener('click', () => {
-        document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.login-tab-content').forEach(c => c.classList.remove('active'));
-        document.getElementById('tabFace').classList.add('active');
-        document.getElementById('loginFaceContent').classList.add('active');
-        startLoginCamera();
+    document.getElementById('backToEmailBtn').addEventListener('click', () => {
+        resetLoginSteps();
     });
-    document.getElementById('tabPassword').addEventListener('click', () => {
-        document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.login-tab-content').forEach(c => c.classList.remove('active'));
-        document.getElementById('tabPassword').classList.add('active');
-        document.getElementById('loginPasswordContent').classList.add('active');
+    document.getElementById('backToAuthFromFace').addEventListener('click', () => {
         if (loginCamera) loginCamera.stop();
+        showStep('loginStepAuth');
+    });
+    document.getElementById('backToAuthFromPass').addEventListener('click', () => {
+        showStep('loginStepAuth');
     });
 
-    // Show register admin form
     document.getElementById('showRegisterAdmin').addEventListener('click', () => {
-        const faceContent = document.getElementById('loginFaceContent');
-        const passContent = document.getElementById('loginPasswordContent');
-        const regContent = document.getElementById('registerAdminContent');
-        const showRegister = regContent.style.display === 'none';
-        faceContent.style.display = 'none';
-        passContent.style.display = 'none';
-        regContent.style.display = showRegister ? 'block' : 'none';
-        document.getElementById('showRegisterAdmin').textContent = showRegister ? 'Voltar ao login' : 'Cadastrar primeiro admin';
+        showStep('registerAdminContent');
+    });
+    document.getElementById('backFromRegister').addEventListener('click', () => {
+        resetLoginSteps();
     });
 
     // Check API status

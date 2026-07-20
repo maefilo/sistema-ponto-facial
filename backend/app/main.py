@@ -408,6 +408,18 @@ async def register_admin(
     )
 
 
+@app.get("/auth/check-email")
+def check_email(email: str, db: Session = Depends(get_db)):
+    admin = db.query(Admin).filter(Admin.email == email).first()
+    if not admin:
+        raise HTTPException(status_code=404, detail="Email não encontrado")
+    return {
+        "email": admin.email,
+        "name": admin.name,
+        "has_face": admin.face_embedding is not None,
+    }
+
+
 @app.post("/auth/login", response_model=TokenResponse)
 def login_admin(data: AdminLogin, db: Session = Depends(get_db)):
     admin = db.query(Admin).filter(Admin.email == data.email).first()

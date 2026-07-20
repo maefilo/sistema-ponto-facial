@@ -120,6 +120,10 @@ const api = {
     },
 
     // Auth
+    checkEmail(email) {
+        return this.request('GET', `/auth/check-email?email=${encodeURIComponent(email)}`);
+    },
+
     registerAdmin(data) {
         return this.request('POST', '/auth/register', data, true);
     },

@@ -23,13 +23,42 @@
                 <p>Login do Administrador</p>
             </div>
 
-            <div class="login-tabs">
-                <button class="login-tab active" data-tab="face" id="tabFace">Rosto</button>
-                <button class="login-tab" data-tab="password" id="tabPassword">Senha</button>
+            <!-- Step 1: Email -->
+            <div id="loginStepEmail">
+                <div class="form-group">
+                    <label for="loginEmailInput">Email</label>
+                    <input type="email" id="loginEmailInput" required placeholder="admin@email.com" autocomplete="email">
+                </div>
+                <button class="btn btn-primary btn-large" id="checkEmailBtn">
+                    <span>→</span> Continuar
+                </button>
             </div>
 
-            <!-- Login por Rosto -->
-            <div class="login-tab-content active" id="loginFaceContent">
+            <!-- Step 2: Face or Password -->
+            <div id="loginStepAuth" style="display:none;">
+                <div class="user-identified" id="userIdentified">
+                    <span class="user-avatar" id="userAvatar"></span>
+                    <span class="user-name" id="userName"></span>
+                </div>
+
+                <div class="auth-options">
+                    <button class="btn btn-primary btn-large" id="chooseFaceBtn">
+                        <span>📸</span> Entrar com Rosto
+                    </button>
+                    <button class="btn btn-secondary btn-large" id="choosePasswordBtn">
+                        <span>🔑</span> Entrar com Senha
+                    </button>
+                </div>
+
+                <button class="link-btn" id="backToEmailBtn">← Voltar</button>
+            </div>
+
+            <!-- Step 2a: Face scan -->
+            <div id="loginStepFace" style="display:none;">
+                <div class="user-identified">
+                    <span class="user-avatar" id="faceUserAvatar"></span>
+                    <span class="user-name" id="faceUserName"></span>
+                </div>
                 <div class="camera-container camera-small">
                     <video id="loginCameraFeed" autoplay playsinline></video>
                     <canvas id="loginCameraCanvas" style="display:none;"></canvas>
@@ -40,15 +69,16 @@
                 <button class="btn btn-primary btn-large" id="loginFaceBtn">
                     <span>📸</span> Reconhecer e Entrar
                 </button>
+                <button class="link-btn" id="backToAuthFromFace">← Voltar</button>
             </div>
 
-            <!-- Login por Senha -->
-            <div class="login-tab-content" id="loginPasswordContent">
+            <!-- Step 2b: Password -->
+            <div id="loginStepPassword" style="display:none;">
+                <div class="user-identified">
+                    <span class="user-avatar" id="passUserAvatar"></span>
+                    <span class="user-name" id="passUserName"></span>
+                </div>
                 <form id="loginForm">
-                    <div class="form-group">
-                        <label for="loginEmail">Email</label>
-                        <input type="email" id="loginEmail" required placeholder="admin@email.com">
-                    </div>
                     <div class="form-group">
                         <label for="loginPassword">Senha</label>
                         <input type="password" id="loginPassword" required placeholder="Sua senha">
@@ -57,10 +87,11 @@
                         <span>🔑</span> Entrar
                     </button>
                 </form>
+                <button class="link-btn" id="backToAuthFromPass">← Voltar</button>
             </div>
 
-            <!-- Cadastro de Admin (escondido) -->
-            <div class="login-tab-content" id="registerAdminContent" style="display:none;">
+            <!-- Cadastro de Admin -->
+            <div id="registerAdminContent" style="display:none;">
                 <form id="registerAdminForm">
                     <div class="form-group">
                         <label for="regAdminName">Nome</label>
@@ -85,9 +116,10 @@
                         <span>📸</span> Cadastrar com Rosto
                     </button>
                 </form>
+                <button class="link-btn" id="backFromRegister">← Voltar ao login</button>
             </div>
 
-            <div class="login-footer">
+            <div class="login-footer" id="loginFooter">
                 <button class="link-btn" id="showRegisterAdmin">Cadastrar primeiro admin</button>
             </div>
         </div>
