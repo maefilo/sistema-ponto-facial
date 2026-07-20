@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, UploadFile, File, HTTPException
+from fastapi import FastAPI, Depends, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -344,7 +344,21 @@ def list_class_students(class_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/auth/register", response_model=TokenResponse)
-async def register_admin(data: AdminRegister, file: UploadFile = File(None), db: Session = Depends(get_db)):
+async def register_admin(
+    file: UploadFile = File(None),
+    db: Session = Depends(get_db),
+    name: str = Form(None),
+    email: str = Form(None),
+    password: str = Form(None),
+    json_data: str = Form(None),
+):
+    if json_data:
+        data = AdminRegister.model_validate_json(json_data)
+    elif email and password:
+        data = AdminRegister(name=name or "", email=email, password=password)
+    else:
+        raise HTTPException(status_code=400, detail="Dados obrigatórios não enviados")
+
     existing = db.query(Admin).filter(Admin.email == data.email).first()
     
     if existing:
