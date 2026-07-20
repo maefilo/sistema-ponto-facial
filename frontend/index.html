@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="description" content="Sistema de controle de presença por reconhecimento facial">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Controle de Presença</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="login-header">
+                <span class="login-icon">📷</span>
+                <h1>FaceControl</h1>
+                <p>Login do Administrador</p>
+            </div>
+
+            <div class="login-tabs">
+                <button class="login-tab active" data-tab="face" id="tabFace">Rosto</button>
+                <button class="login-tab" data-tab="password" id="tabPassword">Senha</button>
+            </div>
+
+            <!-- Login por Rosto -->
+            <div class="login-tab-content active" id="loginFaceContent">
+                <div class="camera-container camera-small">
+                    <video id="loginCameraFeed" autoplay playsinline></video>
+                    <canvas id="loginCameraCanvas" style="display:none;"></canvas>
+                    <div class="camera-overlay">
+                        <div class="face-guide" style="width:140px;height:180px;"></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-large" id="loginFaceBtn">
+                    <span>📸</span> Reconhecer e Entrar
+                </button>
+            </div>
+
+            <!-- Login por Senha -->
+            <div class="login-tab-content" id="loginPasswordContent">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" required placeholder="admin@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Senha</label>
+                        <input type="password" id="loginPassword" required placeholder="Sua senha">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <span>🔑</span> Entrar
+                    </button>
+                </form>
+            </div>
+
+            <!-- Cadastro de Admin (escondido) -->
+            <div class="login-tab-content" id="registerAdminContent" style="display:none;">
+                <form id="registerAdminForm">
+                    <div class="form-group">
+                        <label for="regAdminName">Nome</label>
+                        <input type="text" id="regAdminName" required placeholder="Seu nome">
+                    </div>
+                    <div class="form-group">
+                        <label for="regAdminEmail">Email</label>
+                        <input type="email" id="regAdminEmail" required placeholder="admin@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="regAdminPassword">Senha</label>
+                        <input type="password" id="regAdminPassword" required placeholder="Crie uma senha">
+                    </div>
+                    <button type="submit" class="btn btn-success btn-large">
+                        <span>➕</span> Cadastrar Admin
+                    </button>
+                </form>
+                <div id="adminFaceSection" style="display:none; margin-top:16px;">
+                    <p class="help-text">Agora registre seu rosto para login facial:</p>
+                    <div class="camera-container camera-small">
+                        <video id="adminFaceCameraFeed" autoplay playsinline></video>
+                        <canvas id="adminFaceCameraCanvas" style="display:none;"></canvas>
+                    </div>
+                    <button class="btn btn-primary btn-large" id="registerAdminFaceBtn">
+                        <span>📸</span> Registrar Rosto
+                    </button>
+                </div>
+            </div>
+
+            <div class="login-footer">
+                <button class="link-btn" id="showRegisterAdmin">Cadastrar primeiro admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP (escondido até login) -->
+    <div class="app" id="mainApp" style="display:none;">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">📷</span>
+                    <span class="logo-text">FaceControl</span>
+                </div>
+                <button class="close-btn" id="closeSidebar">✕</button>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-page="home">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Início</span>
+                </li>
+                <li class="nav-item" data-page="recognize">
+                    <span class="nav-icon">🔍</span>
+                    <span class="nav-text">Reconhecer</span>
+                </li>
+                <li class="nav-item" data-page="register">
+                    <span class="nav-icon">➕</span>
+                    <span class="nav-text">Cadastrar</span>
+                </li>
+                <li class="nav-item" data-page="students">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Alunos</span>
+                </li>
+                <li class="nav-item" data-page="classes">
+                    <span class="nav-icon">🏫</span>
+                    <span class="nav-text">Turmas</span>
+                </li>
+                <li class="nav-item" data-page="attendance">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">Presenças</span>
+                </li>
+                <li class="nav-item" data-page="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Configurações</span>
+                </li>
+                <li class="nav-item" data-page="logout" onclick="handleLogout()">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-text">Sair</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <button class="menu-btn" id="openSidebar">☰</button>
+                <h1 class="page-title" id="pageTitle">Início</h1>
+                <div class="topbar-status" id="apiStatus">
+                    <span class="status-dot offline"></span>
+                    <span class="status-text">Offline</span>
+                </div>
+            </header>
+
+            <!-- Pages -->
+            <div class="pages-container">
+                <!-- HOME PAGE -->
+                <section class="page active" id="page-home">
+                    <div class="stats-grid">
+                        <div class="stat-card stat-total">
+                            <div class="stat-number" id="statTotal">0</div>
+                            <div class="stat-label">Total Alunos</div>
+                        </div>
+                        <div class="stat-card stat-present">
+                            <div class="stat-number" id="statPresent">0</div>
+                            <div class="stat-label">Presentes Hoje</div>
+                        </div>
+                        <div class="stat-card stat-absent">
+                            <div class="stat-number" id="statAbsent">0</div>
+                            <div class="stat-label">Ausentes Hoje</div>
+                        </div>
+                        <div class="stat-card stat-rate">
+                            <div class="stat-number" id="statRate">0%</div>
+                            <div class="stat-label">Taxa Presença</div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <h2 class="section-title">Ações Rápidas</h2>
+                        <div class="actions-grid">
+                            <button class="action-btn" onclick="navigateTo('recognize')">
+                                <span class="action-icon">📸</span>
+                                <span class="action-text">Registrar Presença</span>
+                            </button>
+                            <button class="action-btn" onclick="navigateTo('register')">
+                                <span class="action-icon">➕</span>
+                                <span class="action-text">Cadastrar Aluno</span>
+                            </button>
+                            <button class="action-btn" onclick="navigateTo('students')">
+                                <span class="action-icon">👥</span>
+                                <span class="action-text">Ver Alunos</span>
+                            </button>
+                            <button class="action-btn" onclick="navigateTo('classes')">
+                                <span class="action-icon">🏫</span>
+                                <span class="action-text">Turmas</span>
+                            </button>
+                            <button class="action-btn" onclick="navigateTo('settings')">
+                                <span class="action-icon">📱</span>
+                                <span class="action-text">WhatsApp</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="recent-section">
+                        <h2 class="section-title">Presenças Recentes</h2>
+                        <div class="recent-list" id="recentAttendances">
+                            <p class="empty-state">Nenhuma presença registrada hoje</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- RECOGNIZE PAGE -->
+                <section class="page" id="page-recognize">
+                    <div class="camera-container">
+                        <video id="cameraFeed" autoplay playsinline></video>
+                        <canvas id="cameraCanvas" style="display:none;"></canvas>
+                        <div class="camera-overlay">
+                            <div class="face-guide"></div>
+                            <p class="camera-instruction">Posicione o rosto na moldura</p>
+                        </div>
+                    </div>
+                    <div class="camera-controls">
+                        <button class="btn btn-primary btn-large" id="captureBtn">
+                            <span>📸</span> Capturar e Reconhecer
+                        </button>
+                    </div>
+                    <div class="result-container" id="recognizeResult" style="display:none;">
+                        <div class="result-card" id="resultCard">
+                            <div class="result-icon" id="resultIcon">✓</div>
+                            <h3 class="result-title" id="resultTitle"></h3>
+                            <p class="result-message" id="resultMessage"></p>
+                            <div class="result-details" id="resultDetails"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- REGISTER PAGE -->
+                <section class="page" id="page-register">
+                    <div class="form-container">
+                        <h2 class="section-title">Cadastrar Novo Aluno</h2>
+                        <form id="registerForm">
+                            <div class="form-group">
+                                <label for="regName">Nome completo *</label>
+                                <input type="text" id="regName" required placeholder="Nome do aluno">
+                            </div>
+                            <div class="form-group">
+                                <label for="regMatricula">Matrícula *</label>
+                                <input type="text" id="regMatricula" required placeholder="Número da matrícula">
+                            </div>
+                            <div class="form-group">
+                                <label for="regPhone">Telefone *</label>
+                                <input type="tel" id="regPhone" required placeholder="DDD + Número">
+                            </div>
+                            <div class="form-group">
+                                <label for="regEmail">Email</label>
+                                <input type="email" id="regEmail" placeholder="email@exemplo.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="regParentPhone">Telefone do Responsável</label>
+                                <input type="tel" id="regParentPhone" placeholder="DDD + Número do responsável">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-large">
+                                <span>➕</span> Cadastrar Aluno
+                            </button>
+                        </form>
+
+                        <div class="divider"></div>
+
+                        <h2 class="section-title">Registrar Rosto</h2>
+                        <p class="help-text">Após cadastrar o aluno, selecione-o e tire uma foto para registrar o rosto.</p>
+                        <div class="form-group">
+                            <label for="faceStudentSelect">Selecionar Aluno</label>
+                            <select id="faceStudentSelect">
+                                <option value="">Selecione um aluno...</option>
+                            </select>
+                        </div>
+                        <div class="camera-container camera-small">
+                            <video id="faceCameraFeed" autoplay playsinline></video>
+                            <canvas id="faceCameraCanvas" style="display:none;"></canvas>
+                        </div>
+                        <button class="btn btn-primary btn-large" id="captureFaceBtn">
+                            <span>📸</span> Capturar e Registrar Rosto
+                        </button>
+                    </div>
+                </section>
+
+                <!-- STUDENTS PAGE -->
+                <section class="page" id="page-students">
+                    <div class="students-header">
+                        <h2 class="section-title">Alunos Cadastrados</h2>
+                        <span class="student-count" id="studentCount">0 aluno(s)</span>
+                    </div>
+                    <div class="search-container">
+                        <input type="text" id="searchStudents" placeholder="Buscar aluno..." class="search-input">
+                    </div>
+                    <div class="students-grid" id="studentsList">
+                        <p class="empty-state">Nenhum aluno cadastrado</p>
+                    </div>
+                </section>
+
+                <!-- CLASSES PAGE -->
+                <section class="page" id="page-classes">
+                    <div class="form-container">
+                        <h2 class="section-title">Criar Turma</h2>
+                        <form id="classForm">
+                            <div class="form-group">
+                                <label for="className">Nome da Turma *</label>
+                                <input type="text" id="className" required placeholder="Ex: Turma A - Manhã">
+                            </div>
+                            <div class="form-group">
+                                <label for="classSchedule">Horário</label>
+                                <input type="text" id="classSchedule" placeholder="Ex: Seg-Sex 08:00-12:00">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-large">
+                                <span>➕</span> Criar Turma
+                            </button>
+                        </form>
+
+                        <div class="divider"></div>
+
+                        <h2 class="section-title">Turmas Cadastradas</h2>
+                        <div class="classes-list" id="classesList">
+                            <p class="empty-state">Nenhuma turma cadastrada</p>
+                        </div>
+
+                        <!-- Class detail modal -->
+                        <div class="modal-overlay" id="classModal" style="display:none;">
+                            <div class="modal">
+                                <div class="modal-header">
+                                    <h3 id="modalClassName">Turma</h3>
+                                    <button class="close-btn" onclick="closeClassModal()">✕</button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label>Adicionar Aluno</label>
+                                        <select id="modalStudentSelect">
+                                            <option value="">Selecione um aluno...</option>
+                                        </select>
+                                        <button class="btn btn-primary" onclick="handleAddStudentToClass()" style="margin-top:8px;">
+                                            Adicionar
+                                        </button>
+                                    </div>
+                                    <h4>Alunos na Turma</h4>
+                                    <div id="modalClassStudents">
+                                        <p class="empty-state">Nenhum aluno nesta turma</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ATTENDANCE PAGE -->
+                <section class="page" id="page-attendance">
+                    <div class="attendance-header">
+                        <h2 class="section-title">Registro de Presenças</h2>
+                        <input type="date" id="attendanceDate" class="date-input">
+                    </div>
+                    <div class="attendance-list" id="attendanceList">
+                        <p class="empty-state">Nenhuma presença encontrada</p>
+                    </div>
+                </section>
+
+                <!-- SETTINGS PAGE -->
+                <section class="page" id="page-settings">
+                    <div class="settings-container">
+                        <h2 class="section-title">Conta do Admin</h2>
+                        <div class="settings-card">
+                            <div class="status-row">
+                                <span>Nome</span>
+                                <span class="status-value" id="adminName">-</span>
+                            </div>
+                            <div class="status-row">
+                                <span>Email</span>
+                                <span class="status-value" id="adminEmail">-</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <h2 class="section-title">Configurações WhatsApp</h2>
+                        <div class="settings-card">
+                            <p class="settings-description">Envie notificações manuais para os responsáveis dos alunos.</p>
+                            <div class="form-group">
+                                <label for="notifyStudent">ID do Aluno</label>
+                                <input type="number" id="notifyStudent" placeholder="ID do aluno">
+                            </div>
+                            <div class="form-group">
+                                <label for="notifyMessage">Mensagem</label>
+                                <textarea id="notifyMessage" rows="4" placeholder="Digite a mensagem..."></textarea>
+                            </div>
+                            <button class="btn btn-success btn-large" id="sendNotifyBtn">
+                                <span>📱</span> Enviar via WhatsApp
+                            </button>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <h2 class="section-title">Status do Sistema</h2>
+                        <div class="settings-card">
+                            <div class="status-row">
+                                <span>Versão</span>
+                                <span class="status-value">1.0.0</span>
+                            </div>
+                            <div class="status-row">
+                                <span>API Status</span>
+                                <span class="status-value" id="settingsApiStatus">Verificando...</span>
+                            </div>
+                            <div class="status-row">
+                                <span>Rostos Registrados</span>
+                                <span class="status-value" id="facesRegistered">0</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <h2 class="section-title">WhatsApp Service</h2>
+                        <div class="settings-card">
+                            <div class="status-row">
+                                <span>Status</span>
+                                <span class="status-value" id="whatsappStatus">Verificando...</span>
+                            </div>
+                            <div class="whatsapp-qr" id="whatsappQR" style="display:none;">
+                                <p>Escaneie o QR Code com seu WhatsApp:</p>
+                                <img id="qrImage" src="" alt="QR Code">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-message" id="toastMessage"></span>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

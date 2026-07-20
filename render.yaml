@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: facial-attendance-api
+    runtime: python
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: TIDB_HOST
+        value: gateway01.eu-central-1.prod.aws.tidbcloud.com
+      - key: TIDB_PORT
+        value: 4000
+      - key: TIDB_USER
+        value: 4EELZAn7T215h3p.root
+      - key: TIDB_PASSWORD
+        value: cdaVT8w69VhzbPkR
+      - key: TIDB_DB_NAME
+        value: facial_attendance
+      - key: FACE_DB_DIR
+        value: /tmp/face_db
+      - key: MODEL_PACK
+        value: buffalo_sc
+      - key: FACE_MATCH_THRESHOLD
+        value: "0.4"
+      - key: WHATSAPP_SERVICE_URL
+        value: ""
+    healthCheckPath: /health
+    autoDeploy: true

@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: facial-attendance-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: TIDB_HOST
+        sync: false
+      - key: TIDB_PORT
+        value: 4000
+      - key: TIDB_USER
+        sync: false
+      - key: TIDB_PASSWORD
+        sync: false
+      - key: TIDB_DB_NAME
+        value: facial_attendance
+      - key: WHATSAPP_SERVICE_URL
+        value: http://localhost:3001
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: FACE_DB_DIR
+        value: /tmp/face_db
+      - key: FACE_MATCH_THRESHOLD
+        value: "0.4"
+      - key: MODEL_PACK
+        value: buffalo_sc
+    healthCheckPath: /health
+    autoDeploy: true

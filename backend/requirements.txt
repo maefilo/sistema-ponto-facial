@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pymysql
+python-dotenv
+python-multipart
+numpy<2
+opencv-python-headless
+insightface
+onnxruntime
+faiss-cpu
+Pillow
+pydantic
+httpx
