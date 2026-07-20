@@ -344,10 +344,26 @@ def list_class_students(class_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/auth/register", response_model=TokenResponse)
-async def register_admin(data: AdminRegister, db: Session = Depends(get_db)):
+async def register_admin(data: AdminRegister, file: UploadFile = File(None), db: Session = Depends(get_db)):
     existing = db.query(Admin).filter(Admin.email == data.email).first()
+    
     if existing:
-        raise HTTPException(status_code=400, detail="Email já cadastrado")
+        token = auth.generate_token(existing.id)
+        if file:
+            image_bytes = await file.read()
+            embedding, info = face_engine.extract_embedding(image_bytes)
+            if embedding is not None:
+                auth.register_admin_face(existing.id, embedding, db)
+        return TokenResponse(
+            token=token,
+            admin=AdminResponse(
+                id=existing.id,
+                name=existing.name,
+                email=existing.email,
+                has_face=existing.face_embedding is not None,
+                created_at=existing.created_at,
+            ),
+        )
 
     admin = Admin(
         name=data.name,
@@ -357,6 +373,13 @@ async def register_admin(data: AdminRegister, db: Session = Depends(get_db)):
     db.add(admin)
     db.commit()
     db.refresh(admin)
+
+    if file:
+        image_bytes = await file.read()
+        embedding, info = face_engine.extract_embedding(image_bytes)
+        if embedding is not None:
+            auth.register_admin_face(admin.id, embedding, db)
+            db.refresh(admin)
 
     token = auth.generate_token(admin.id)
     return TokenResponse(

@@ -668,23 +668,10 @@ async function handleRegisterAdmin(e) {
     const email = document.getElementById('regAdminEmail').value;
     const password = document.getElementById('regAdminPassword').value;
 
-    try {
-        const result = await api.registerAdmin({ name, email, password });
-        adminToken = result.token;
-        adminData = result.admin;
-        localStorage.setItem('adminToken', adminToken);
-        showToast('Admin cadastrado! Agora registre seu rosto.', 'success');
-        document.getElementById('adminFaceSection').style.display = 'block';
-    } catch (err) {
-        showToast(err.data?.detail || 'Erro ao cadastrar admin', 'error');
-    }
-}
-
-async function handleRegisterAdminFace() {
-    if (!adminData) {
-        showToast('Faça o cadastro primeiro', 'error');
-        return;
-    }
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('password', password);
 
     const camera = new CameraManager(
         document.getElementById('adminFaceCameraFeed'),
@@ -693,7 +680,7 @@ async function handleRegisterAdminFace() {
 
     const started = await camera.start();
     if (!started) {
-        showToast('Erro ao acessar câmera', 'error');
+        showToast('Acesso à câmera necessário para registrar rosto', 'error');
         return;
     }
 
@@ -706,15 +693,17 @@ async function handleRegisterAdminFace() {
         return;
     }
 
-    const formData = new FormData();
     formData.append('file', blob, 'admin_face.jpg');
 
     try {
-        await api.registerAdminFace(adminData.id, formData);
-        showToast('Rosto registrado com sucesso!', 'success');
+        const result = await api.registerAdmin(formData);
+        adminToken = result.token;
+        adminData = result.admin;
+        localStorage.setItem('adminToken', adminToken);
+        showToast('Admin cadastrado e rosto registrado!', 'success');
         showMainApp();
     } catch (err) {
-        showToast(err.data?.detail || 'Erro ao registrar rosto', 'error');
+        showToast(err.data?.detail || 'Erro ao cadastrar admin', 'error');
     }
 }
 
@@ -790,7 +779,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginFaceBtn').addEventListener('click', handleLoginFace);
     document.getElementById('loginForm').addEventListener('submit', handleLoginPassword);
     document.getElementById('registerAdminForm').addEventListener('submit', handleRegisterAdmin);
-    document.getElementById('registerAdminFaceBtn').addEventListener('click', handleRegisterAdminFace);
 
     // Login tabs
     document.getElementById('tabFace').addEventListener('click', () => {

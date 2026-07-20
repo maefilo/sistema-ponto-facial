@@ -121,7 +121,7 @@ const api = {
 
     // Auth
     registerAdmin(data) {
-        return this.request('POST', '/auth/register', data);
+        return this.request('POST', '/auth/register', data, true);
     },
 
     loginAdmin(data) {

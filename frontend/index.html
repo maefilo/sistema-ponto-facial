@@ -74,20 +74,17 @@
                         <label for="regAdminPassword">Senha</label>
                         <input type="password" id="regAdminPassword" required placeholder="Crie uma senha">
                     </div>
+                    <div class="form-group">
+                        <label>Seu rosto (para login facial)</label>
+                        <div class="camera-container camera-small">
+                            <video id="adminFaceCameraFeed" autoplay playsinline></video>
+                            <canvas id="adminFaceCameraCanvas" style="display:none;"></canvas>
+                        </div>
+                    </div>
                     <button type="submit" class="btn btn-success btn-large">
-                        <span>➕</span> Cadastrar Admin
+                        <span>📸</span> Cadastrar com Rosto
                     </button>
                 </form>
-                <div id="adminFaceSection" style="display:none; margin-top:16px;">
-                    <p class="help-text">Agora registre seu rosto para login facial:</p>
-                    <div class="camera-container camera-small">
-                        <video id="adminFaceCameraFeed" autoplay playsinline></video>
-                        <canvas id="adminFaceCameraCanvas" style="display:none;"></canvas>
-                    </div>
-                    <button class="btn btn-primary btn-large" id="registerAdminFaceBtn">
-                        <span>📸</span> Registrar Rosto
-                    </button>
-                </div>
             </div>
 
             <div class="login-footer">
