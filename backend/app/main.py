@@ -87,6 +87,9 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     if not student:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
     face_engine.delete_student_embeddings(student_id)
+    db.query(Attendance).filter(Attendance.student_id == student_id).delete()
+    db.query(ClassStudent).filter(ClassStudent.student_id == student_id).delete()
+    db.query(FaceEmbedding).filter(FaceEmbedding.student_id == student_id).delete()
     db.delete(student)
     db.commit()
     return {"message": "Aluno removido com sucesso"}
