@@ -77,4 +77,5 @@ class Admin(Base):
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
+    face_embedding = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

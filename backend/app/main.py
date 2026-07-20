@@ -365,7 +365,7 @@ async def register_admin(data: AdminRegister, db: Session = Depends(get_db)):
             id=admin.id,
             name=admin.name,
             email=admin.email,
-            has_face=False,
+            has_face=admin.face_embedding is not None,
             created_at=admin.created_at,
         ),
     )
@@ -384,7 +384,7 @@ def login_admin(data: AdminLogin, db: Session = Depends(get_db)):
             id=admin.id,
             name=admin.name,
             email=admin.email,
-            has_face=False,
+            has_face=admin.face_embedding is not None,
             created_at=admin.created_at,
         ),
     )
@@ -401,7 +401,7 @@ async def register_admin_face(admin_id: int, file: UploadFile = File(...), db: S
     if embedding is None:
         raise HTTPException(status_code=400, detail="Nenhum rosto detectado na imagem")
 
-    auth.register_admin_face(admin_id, embedding)
+    auth.register_admin_face(admin_id, embedding, db)
     return {"message": "Rosto do admin registrado com sucesso", "det_score": info["det_score"]}
 
 
@@ -412,7 +412,7 @@ async def login_face(file: UploadFile = File(...), db: Session = Depends(get_db)
     if embedding is None:
         raise HTTPException(status_code=400, detail="Nenhum rosto detectado na imagem")
 
-    admin_id = auth.recognize_admin_face(embedding)
+    admin_id = auth.recognize_admin_face(embedding, db)
     if admin_id is None:
         raise HTTPException(status_code=401, detail="Rosto não reconhecido como admin")
 
@@ -447,6 +447,6 @@ def get_current_admin(token: str, db: Session = Depends(get_db)):
         id=admin.id,
         name=admin.name,
         email=admin.email,
-        has_face=False,
+        has_face=admin.face_embedding is not None,
         created_at=admin.created_at,
     )
