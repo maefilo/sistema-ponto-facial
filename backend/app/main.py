@@ -83,7 +83,7 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
 
 
 @app.delete("/students/{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
+def delete_student(student_id: int):
     try:
         with engine.begin() as conn:
             row = conn.execute(text("SELECT id FROM students WHERE id = :sid"), {"sid": student_id}).first()
