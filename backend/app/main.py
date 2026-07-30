@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from datetime import datetime
 import json
 
@@ -86,10 +87,13 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
-    face_engine.delete_student_embeddings(student_id)
-    db.query(Attendance).filter(Attendance.student_id == student_id).delete()
-    db.query(ClassStudent).filter(ClassStudent.student_id == student_id).delete()
-    db.query(FaceEmbedding).filter(FaceEmbedding.student_id == student_id).delete()
+    try:
+        face_engine.delete_student_embeddings(student_id)
+    except Exception:
+        pass
+    db.execute(text("DELETE FROM attendances WHERE student_id = :sid"), {"sid": student_id})
+    db.execute(text("DELETE FROM class_students WHERE student_id = :sid"), {"sid": student_id})
+    db.execute(text("DELETE FROM face_embeddings WHERE student_id = :sid"), {"sid": student_id})
     db.delete(student)
     db.commit()
     return {"message": "Aluno removido com sucesso"}
