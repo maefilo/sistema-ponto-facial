@@ -63,12 +63,14 @@ class SendNotificationRequest(BaseModel):
 class ClassCreate(BaseModel):
     name: str
     schedule: Optional[str] = None
+    eklesia_class_id: Optional[int] = None
 
 
 class ClassResponse(BaseModel):
     id: int
     name: str
     schedule: Optional[str] = None
+    eklesia_class_id: Optional[int] = None
     student_count: int = 0
     created_at: datetime
 

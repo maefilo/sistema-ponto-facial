@@ -479,6 +479,7 @@ async function loadClasses() {
                     <div class="student-name">${c.name}</div>
                     <div class="student-detail">Horário: ${c.schedule || 'Não definido'}</div>
                     <div class="student-detail">${c.student_count} aluno(s)</div>
+                    ${c.eklesia_class_id ? `<div class="student-detail">Eklesia ID: ${c.eklesia_class_id}</div>` : ''}
                 </div>
                 <div class="student-actions">
                     <button class="btn btn-primary" onclick="openClassModal(${c.id}, '${c.name.replace(/'/g, "\\'")}')">
@@ -501,6 +502,7 @@ async function handleCreateClass(e) {
     const data = {
         name: document.getElementById('className').value,
         schedule: document.getElementById('classSchedule').value || null,
+        eklesia_class_id: document.getElementById('classEklesiaId').value ? parseInt(document.getElementById('classEklesiaId').value) : null,
     };
 
     try {
