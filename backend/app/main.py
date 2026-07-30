@@ -94,7 +94,7 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     db.execute(text("DELETE FROM attendances WHERE student_id = :sid"), {"sid": student_id})
     db.execute(text("DELETE FROM class_students WHERE student_id = :sid"), {"sid": student_id})
     db.execute(text("DELETE FROM face_embeddings WHERE student_id = :sid"), {"sid": student_id})
-    db.delete(student)
+    db.execute(text("DELETE FROM students WHERE id = :sid"), {"sid": student_id})
     db.commit()
     return {"message": "Aluno removido com sucesso"}
 
