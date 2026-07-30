@@ -84,7 +84,7 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
 
 @app.delete("/students/{student_id}")
 def delete_student(student_id: int, db: Session = Depends(get_db)):
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         row = conn.execute(text("SELECT id FROM students WHERE id = :sid"), {"sid": student_id}).first()
         if not row:
             raise HTTPException(status_code=404, detail="Aluno n�o encontrado")
@@ -96,7 +96,6 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
         conn.execute(text("DELETE FROM class_students WHERE student_id = :sid"), {"sid": student_id})
         conn.execute(text("DELETE FROM face_embeddings WHERE student_id = :sid"), {"sid": student_id})
         conn.execute(text("DELETE FROM students WHERE id = :sid"), {"sid": student_id})
-        conn.commit()
     return {"message": "Aluno removido com sucesso"}
 
 
