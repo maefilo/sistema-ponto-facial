@@ -351,6 +351,10 @@
                                 <label for="classEklesiaId">ID Turma Eklesia</label>
                                 <input type="number" id="classEklesiaId" placeholder="Ex: 83">
                             </div>
+                            <div class="form-group">
+                                <label for="classGradeId">ID Grade Eklesia</label>
+                                <input type="number" id="classGradeId" placeholder="Ex: 76">
+                            </div>
                             <button type="submit" class="btn btn-success btn-large">
                                 <span>➕</span> Criar Turma
                             </button>
@@ -383,6 +387,16 @@
                                     <h4>Alunos na Turma</h4>
                                     <div id="modalClassStudents">
                                         <p class="empty-state">Nenhum aluno nesta turma</p>
+                                    </div>
+                                    <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+                                        <div class="form-group">
+                                            <label for="modalGradeId">ID Grade Eklesia</label>
+                                            <input type="number" id="modalGradeId" placeholder="Ex: 76">
+                                        </div>
+                                        <button class="btn btn-success btn-large" onclick="handleSyncEklesia()" style="width:100%;">
+                                            🔄 Sincronizar Presenças com Eklesia
+                                        </button>
+                                        <div id="syncResult" style="margin-top:12px;"></div>
                                     </div>
                                 </div>
                             </div>

@@ -503,6 +503,7 @@ async function handleCreateClass(e) {
         name: document.getElementById('className').value,
         schedule: document.getElementById('classSchedule').value || null,
         eklesia_class_id: document.getElementById('classEklesiaId').value ? parseInt(document.getElementById('classEklesiaId').value) : null,
+        eklesia_grade_id: document.getElementById('classGradeId').value ? parseInt(document.getElementById('classGradeId').value) : null,
     };
 
     try {
@@ -593,6 +594,52 @@ async function handleAddStudentToClass() {
         await loadClasses();
     } catch (err) {
         showToast(err.data?.detail || 'Erro ao adicionar aluno', 'error');
+    }
+}
+
+async function handleSyncEklesia() {
+    const gradeId = document.getElementById('modalGradeId').value;
+    if (!gradeId) {
+        showToast('Informe o ID Grade Eklesia', 'error');
+        return;
+    }
+
+    const resultDiv = document.getElementById('syncResult');
+    resultDiv.innerHTML = '<p style="color:var(--primary);">Sincronizando...</p>';
+
+    try {
+        const result = await api.syncToEklesia(currentClassId, parseInt(gradeId));
+        let html = `<p style="color:#059669;font-weight:600;">${result.message}</p>`;
+
+        if (result.synced && result.synced.length > 0) {
+            html += '<p><strong>Sincronizados:</strong></p><ul>';
+            result.synced.forEach(s => {
+                html += `<li>${s.name} (código: ${s.eklesia_code})</li>`;
+            });
+            html += '</ul>';
+        }
+
+        if (result.not_found && result.not_found.length > 0) {
+            html += '<p style="color:#f59e0b;"><strong>Não encontrados no Eklesia:</strong></p><ul>';
+            result.not_found.forEach(s => {
+                html += `<li>${s.name} (código: ${s.eklesia_code})</li>`;
+            });
+            html += '</ul>';
+        }
+
+        if (result.not_present && result.not_present.length > 0) {
+            html += '<p style="color:#6b7280;"><strong>Não presentes hoje:</strong></p><ul>';
+            result.not_present.forEach(s => {
+                html += `<li>${s.name}</li>`;
+            });
+            html += '</ul>';
+        }
+
+        resultDiv.innerHTML = html;
+        showToast(result.message, 'success');
+    } catch (err) {
+        resultDiv.innerHTML = `<p style="color:#dc2626;">${err.data?.detail || 'Erro ao sincronizar'}</p>`;
+        showToast(err.data?.detail || 'Erro ao sincronizar', 'error');
     }
 }
 

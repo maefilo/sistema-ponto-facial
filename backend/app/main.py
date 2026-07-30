@@ -522,3 +522,92 @@ def get_current_admin(token: str, db: Session = Depends(get_db)):
         has_face=admin.face_embedding is not None,
         created_at=admin.created_at,
     )
+
+
+@app.post("/eklesia/sync")
+async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(get_db)):
+    from .eklesia_agent import eklesia_login, eklesia_get_alunos, eklesia_salvar_presenca
+
+    db_class = db.query(Class).filter(Class.id == class_id).first()
+    if not db_class:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    if not db_class.eklesia_class_id:
+        raise HTTPException(status_code=400, detail="Turma não tem ID Eklesia configurado")
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    attendances = db.query(Attendance).join(Student).filter(
+        Attendance.date >= today,
+        Attendance.date < datetime.now().replace(hour=23, minute=59, second=59),
+    ).all()
+
+    students_in_class = db.query(Student).join(ClassStudent).filter(
+        ClassStudent.class_id == class_id
+    ).all()
+
+    student_map = {}
+    for s in students_in_class:
+        if s.eklesia_code:
+            student_map[str(s.eklesia_code)] = s.id
+
+    present_student_ids = {a.student_id for a in attendances if a.status.value == "present"}
+
+    try:
+        token = await eklesia_login()
+        eklesia_alunos = await eklesia_get_alunos(token, db_class.eklesia_class_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao conectar no Eklesia: {str(e)}")
+
+    eklesia_map = {}
+    for aluno in eklesia_alunos:
+        cod_pessoa = str(aluno.get("codPessoa", ""))
+        cod_turma_aluno = aluno.get("codEnsinoTurmaAluno")
+        if cod_pessoa and cod_turma_aluno:
+            eklesia_map[cod_pessoa] = cod_turma_aluno
+
+    matched = []
+    not_found = []
+    not_present = []
+
+    for student in students_in_class:
+        if not student.eklesia_code:
+            continue
+        cod_pessoa = str(student.eklesia_code)
+        if cod_pessoa not in eklesia_map:
+            not_found.append({"name": student.name, "eklesia_code": student.eklesia_code})
+            continue
+        if student.id in present_student_ids:
+            matched.append({
+                "codPessoa": int(cod_pessoa),
+                "codEnsinoTurmaAluno": eklesia_map[cod_pessoa],
+                "name": student.name,
+            })
+        else:
+            not_present.append({"name": student.name, "eklesia_code": student.eklesia_code})
+
+    if not matched:
+        return {
+            "message": "Nenhum aluno presente hoje para sincronizar",
+            "matched": [],
+            "not_found": not_found,
+            "not_present": not_present,
+        }
+
+    try:
+        pessoas_payload = [{"codPessoa": m["codPessoa"], "codEnsinoTurmaAluno": m["codEnsinoTurmaAluno"]} for m in matched]
+        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        await eklesia_salvar_presenca(
+            token=token,
+            turma_id=db_class.eklesia_class_id,
+            grade_id=grade_id,
+            pessoas=pessoas_payload,
+            data=now,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar no Eklesia: {str(e)}")
+
+    return {
+        "message": f"{len(matched)} presença(s) sincronizada(s) com sucesso",
+        "synced": [{"name": m["name"], "eklesia_code": m["codPessoa"]} for m in matched],
+        "not_found": not_found,
+        "not_present": not_present,
+    }

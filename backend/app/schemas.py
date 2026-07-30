@@ -64,6 +64,7 @@ class ClassCreate(BaseModel):
     name: str
     schedule: Optional[str] = None
     eklesia_class_id: Optional[int] = None
+    eklesia_grade_id: Optional[int] = None
 
 
 class ClassResponse(BaseModel):
@@ -71,6 +72,7 @@ class ClassResponse(BaseModel):
     name: str
     schedule: Optional[str] = None
     eklesia_class_id: Optional[int] = None
+    eklesia_grade_id: Optional[int] = None
     student_count: int = 0
     created_at: datetime
 

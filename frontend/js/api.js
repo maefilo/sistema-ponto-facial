@@ -64,6 +64,11 @@ const api = {
         return this.request('GET', `/attendances${query ? '?' + query : ''}`);
     },
 
+    // Eklesia sync
+    syncToEklesia(classId, gradeId) {
+        return this.request('POST', `/eklesia/sync?class_id=${classId}&grade_id=${gradeId}`);
+    },
+
     // Stats
     getStats() {
         return this.request('GET', '/stats');

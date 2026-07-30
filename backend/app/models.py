@@ -62,6 +62,7 @@ class Class(Base):
     name = Column(String(255), nullable=False)
     schedule = Column(String(255), nullable=True)
     eklesia_class_id = Column(Integer, nullable=True)
+    eklesia_grade_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
