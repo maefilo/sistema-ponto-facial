@@ -46,7 +46,7 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "Facial Attendance API - Running"}
+    return {"message": "Facial Attendance API - Running", "version": "2.1"}
 
 
 @app.get("/health")
