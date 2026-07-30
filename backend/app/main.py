@@ -91,12 +91,13 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
         face_engine.delete_student_embeddings(student_id)
     except Exception:
         pass
-    db.expire_all()
-    db.execute(text("DELETE FROM attendances WHERE student_id = :sid"), {"sid": student_id})
-    db.execute(text("DELETE FROM class_students WHERE student_id = :sid"), {"sid": student_id})
-    db.execute(text("DELETE FROM face_embeddings WHERE student_id = :sid"), {"sid": student_id})
-    db.execute(text("DELETE FROM students WHERE id = :sid"), {"sid": student_id})
     db.commit()
+    with engine.connect() as conn:
+        conn.execute(text("DELETE FROM attendances WHERE student_id = :sid"), {"sid": student_id})
+        conn.execute(text("DELETE FROM class_students WHERE student_id = :sid"), {"sid": student_id})
+        conn.execute(text("DELETE FROM face_embeddings WHERE student_id = :sid"), {"sid": student_id})
+        conn.execute(text("DELETE FROM students WHERE id = :sid"), {"sid": student_id})
+        conn.commit()
     return {"message": "Aluno removido com sucesso"}
 
 
