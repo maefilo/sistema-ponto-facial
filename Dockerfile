@@ -2,6 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /backend
 
+ARG BUILD_ID=1
+RUN echo "Build $BUILD_ID"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \

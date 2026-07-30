@@ -24,7 +24,8 @@ class Student(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     face_embeddings = relationship("FaceEmbedding", back_populates="student", cascade="all, delete-orphan")
-    attendances = relationship("Attendance", back_populates="student")
+    attendances = relationship("Attendance", back_populates="student", passive_deletes=True)
+    class_students = relationship("ClassStudent", primaryjoin="Student.id == ClassStudent.student_id", viewonly=True)
 
 
 class FaceEmbedding(Base):
