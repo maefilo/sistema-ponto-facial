@@ -45,6 +45,10 @@ const api = {
         return this.request('DELETE', `/students/${id}`);
     },
 
+    updateStudent(id, data) {
+        return this.request('PUT', `/students/${id}`, data);
+    },
+
     registerFace(studentId, formData) {
         return this.request('POST', `/students/${studentId}/register-face`, formData, true);
     },

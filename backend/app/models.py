@@ -20,6 +20,7 @@ class Student(Base):
     phone = Column(String(20), unique=True, nullable=False)
     registration_number = Column(String(50), unique=True, nullable=False)
     parent_phone = Column(String(20), nullable=True)
+    eklesia_code = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

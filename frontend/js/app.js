@@ -255,6 +255,7 @@ async function handleRegisterStudent(e) {
         phone: document.getElementById('regPhone').value,
         email: document.getElementById('regEmail').value || null,
         parent_phone: document.getElementById('regParentPhone').value || null,
+        eklesia_code: document.getElementById('regEklesiaCode').value || null,
     };
 
     try {
@@ -328,6 +329,9 @@ async function loadStudents() {
                     <div class="student-name">${s.name}</div>
                     <div class="student-detail">Matrícula: ${s.registration_number}</div>
                     <div class="student-detail">Telefone: ${s.phone}</div>
+                    <div class="student-detail">Eklesia: <input type="text" value="${s.eklesia_code || ''}" 
+                        onchange="updateEklesiaCode(${s.id}, this.value)"
+                        placeholder="Código" style="width:80px;border:1px solid #ddd;border-radius:4px;padding:2px 6px;font-size:12px;"></div>
                 </div>
                 <div class="student-actions">
                     <button class="btn btn-danger" onclick="handleDeleteStudent(${s.id}, '${s.name.replace(/'/g, "\\'")}')">
@@ -350,6 +354,19 @@ async function handleDeleteStudent(id, name) {
         await loadStudents();
     } catch {
         showToast('Erro ao remover aluno', 'error');
+    }
+}
+
+async function updateEklesiaCode(studentId, code) {
+    try {
+        const students = await api.listStudents();
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        student.eklesia_code = code || null;
+        await api.updateStudent(studentId, student);
+        showToast('Código Eklesia atualizado', 'success');
+    } catch {
+        showToast('Erro ao atualizar código', 'error');
     }
 }
 

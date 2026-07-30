@@ -100,6 +100,21 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     return {"message": "Aluno removido com sucesso"}
 
 
+@app.put("/students/{student_id}")
+def update_student(student_id: int, data: StudentCreate, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    student.name = data.name
+    student.email = data.email
+    student.phone = data.phone
+    student.registration_number = data.registration_number
+    student.parent_phone = data.parent_phone
+    student.eklesia_code = data.eklesia_code
+    db.commit()
+    return {"message": "Aluno atualizado com sucesso"}
+
+
 @app.post("/students/{student_id}/register-face")
 async def register_face(student_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
     student = db.query(Student).filter(Student.id == student_id).first()

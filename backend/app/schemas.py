@@ -9,6 +9,7 @@ class StudentBase(BaseModel):
     phone: str
     registration_number: str
     parent_phone: Optional[str] = None
+    eklesia_code: Optional[str] = None
 
 
 class StudentCreate(StudentBase):
