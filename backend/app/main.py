@@ -526,7 +526,7 @@ def get_current_admin(token: str, db: Session = Depends(get_db)):
 
 @app.post("/eklesia/sync")
 async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(get_db)):
-    from .eklesia_agent import eklesia_login, eklesia_get_alunos, eklesia_salvar_presenca
+    from .eklesia_agent import eklesia_login, eklesia_get_presences, eklesia_salvar_presenca
 
     db_class = db.query(Class).filter(Class.id == class_id).first()
     if not db_class:
@@ -544,23 +544,20 @@ async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(ge
         ClassStudent.class_id == class_id
     ).all()
 
-    student_map = {}
-    for s in students_in_class:
-        if s.eklesia_code:
-            student_map[str(s.eklesia_code)] = s.id
-
     present_student_ids = {a.student_id for a in attendances if a.status.value == "present"}
 
     try:
         token = await eklesia_login()
-        eklesia_alunos = await eklesia_get_alunos(token, db_class.eklesia_class_id)
+        eklesia_presences = await eklesia_get_presences(
+            token, db_class.eklesia_class_id, grade_id
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao conectar no Eklesia: {str(e)}")
 
     eklesia_map = {}
-    for aluno in eklesia_alunos:
-        cod_pessoa = str(aluno.get("codPessoa", ""))
-        cod_turma_aluno = aluno.get("codEnsinoTurmaAluno")
+    for pres in eklesia_presences:
+        cod_pessoa = str(pres.get("codPessoa", ""))
+        cod_turma_aluno = pres.get("codEnsinoTurmaAluno")
         if cod_pessoa and cod_turma_aluno:
             eklesia_map[cod_pessoa] = cod_turma_aluno
 
@@ -594,12 +591,14 @@ async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(ge
 
     try:
         pessoas_payload = [{"codPessoa": m["codPessoa"], "codEnsinoTurmaAluno": m["codEnsinoTurmaAluno"]} for m in matched]
+        pessoas_atuais_ids = [p["codigo"] for p in eklesia_presences]
         now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         await eklesia_salvar_presenca(
             token=token,
             turma_id=db_class.eklesia_class_id,
             grade_id=grade_id,
             pessoas=pessoas_payload,
+            pessoas_atuais_ids=pessoas_atuais_ids,
             data=now,
         )
     except Exception as e:

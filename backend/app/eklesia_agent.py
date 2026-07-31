@@ -1,5 +1,6 @@
 import httpx
 import os
+import json
 from datetime import datetime
 
 
@@ -16,32 +17,39 @@ async def eklesia_login() -> str:
             timeout=15.0,
         )
         resp.raise_for_status()
-        data = resp.json()
-        return data["token"]
+        basic_token = resp.json()["token"]
 
-
-async def eklesia_get_alunos(token: str, turma_id: int) -> list:
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            f"{EKLESIA_BASE}/ensino/EnsinoTurmaAlunoGradePresenca/ObterAlunosPresenca",
-            params={"codigocEnsinoTurma": turma_id},
-            headers={"Authorization": f"Bearer {token}"},
+        resp2 = await client.get(
+            f"{EKLESIA_BASE}/Token/Autorizar?manterLogado=false",
+            headers={"Authorization": f"Bearer {basic_token}"},
             timeout=15.0,
         )
-        resp.raise_for_status()
-        return resp.json()
+        resp2.raise_for_status()
+        return resp2.json()["token"]
 
 
-async def eklesia_get_grades(token: str, turma_id: int) -> list:
+def eklesia_headers(token: str) -> dict:
+    return {
+        "Authorization": f"Bearer {token}",
+        "eks-igreja-selecionada": "1",
+        "accept": "application/json",
+    }
+
+
+async def eklesia_get_presences(token: str, turma_id: int, grade_id: int) -> list:
     async with httpx.AsyncClient() as client:
         resp = await client.get(
-            f"{EKLESIA_BASE}/ensino/EnsinoTurmaAlunoGradePresenca/ObterPresentes",
-            params={"codigocEnsinoTurma": turma_id, "codGrade": 0, "data": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")},
-            headers={"Authorization": f"Bearer {token}"},
-            timeout=15.0,
+            f"{EKLESIA_BASE}/ensino/EnsinoTurmaAlunoGradePresenca/ObterTodos",
+            headers=eklesia_headers(token),
+            timeout=30.0,
         )
         resp.raise_for_status()
-        return resp.json()
+        all_data = resp.json()
+        return [
+            d for d in all_data
+            if d.get("codEnsinoTurma") == turma_id
+            and d.get("codEnsinoCursoGrade") == grade_id
+        ]
 
 
 async def eklesia_salvar_presenca(
@@ -49,10 +57,11 @@ async def eklesia_salvar_presenca(
     turma_id: int,
     grade_id: int,
     pessoas: list,
+    pessoas_atuais_ids: list,
     data: str,
 ) -> dict:
     payload = {
-        "pessoasAtuais": [],
+        "pessoasAtuais": pessoas_atuais_ids,
         "pessoas": pessoas,
         "codEnsinoCursoGrade": grade_id,
         "codEnsinoTurma": turma_id,
@@ -62,10 +71,7 @@ async def eklesia_salvar_presenca(
         resp = await client.post(
             f"{EKLESIA_BASE}/ensino/EnsinoTurmaAlunoGradePresenca/Salvar",
             json=payload,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-            },
+            headers=eklesia_headers(token),
             timeout=15.0,
         )
         resp.raise_for_status()
@@ -83,11 +89,15 @@ async def sync_attendance_to_eklesia(
     token = await eklesia_login()
     now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
+    existing = await eklesia_get_presences(token, turma_id, grade_id)
+    pessoas_atuais_ids = [d["codigo"] for d in existing]
+
     result = await eklesia_salvar_presenca(
         token=token,
         turma_id=turma_id,
         grade_id=grade_id,
         pessoas=present_students,
+        pessoas_atuais_ids=pessoas_atuais_ids,
         data=now,
     )
     return result
