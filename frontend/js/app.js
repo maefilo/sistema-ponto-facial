@@ -598,9 +598,9 @@ async function handleAddStudentToClass() {
 }
 
 async function handleSyncEklesia() {
-    const gradeId = document.getElementById('modalGradeId').value;
+    const gradeId = document.getElementById('modalTrimestre').value;
     if (!gradeId) {
-        showToast('Informe o ID Grade Eklesia', 'error');
+        showToast('Selecione o trimestre', 'error');
         return;
     }
 

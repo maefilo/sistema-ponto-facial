@@ -390,8 +390,13 @@
                                     </div>
                                     <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
                                         <div class="form-group">
-                                            <label for="modalGradeId">ID Grade Eklesia</label>
-                                            <input type="number" id="modalGradeId" placeholder="Ex: 76">
+                                            <label for="modalTrimestre">Trimestre Eklesia</label>
+                                            <select id="modalTrimestre">
+                                                <option value="74">1° Trimestre</option>
+                                                <option value="75">2° Trimestre</option>
+                                                <option value="76" selected>3° Trimestre</option>
+                                                <option value="77">4° Trimestre</option>
+                                            </select>
                                         </div>
                                         <button class="btn btn-success btn-large" onclick="handleSyncEklesia()" style="width:100%;">
                                             🔄 Sincronizar Presenças com Eklesia
