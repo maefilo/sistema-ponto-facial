@@ -270,7 +270,12 @@ async def send_notification(req: SendNotificationRequest, db: Session = Depends(
 
 @app.post("/classes", response_model=ClassResponse)
 def create_class(class_data: ClassCreate, db: Session = Depends(get_db)):
-    db_class = Class(name=class_data.name, schedule=class_data.schedule)
+    db_class = Class(
+        name=class_data.name,
+        schedule=class_data.schedule,
+        eklesia_class_id=class_data.eklesia_class_id,
+        eklesia_grade_id=class_data.eklesia_grade_id,
+    )
     db.add(db_class)
     db.commit()
     db.refresh(db_class)
@@ -278,6 +283,8 @@ def create_class(class_data: ClassCreate, db: Session = Depends(get_db)):
         id=db_class.id,
         name=db_class.name,
         schedule=db_class.schedule,
+        eklesia_class_id=db_class.eklesia_class_id,
+        eklesia_grade_id=db_class.eklesia_grade_id,
         student_count=0,
         created_at=db_class.created_at,
     )
@@ -293,6 +300,8 @@ def list_classes(db: Session = Depends(get_db)):
             id=c.id,
             name=c.name,
             schedule=c.schedule,
+            eklesia_class_id=c.eklesia_class_id,
+            eklesia_grade_id=c.eklesia_grade_id,
             student_count=count,
             created_at=c.created_at,
         ))
@@ -309,6 +318,8 @@ def get_class(class_id: int, db: Session = Depends(get_db)):
         id=db_class.id,
         name=db_class.name,
         schedule=db_class.schedule,
+        eklesia_class_id=db_class.eklesia_class_id,
+        eklesia_grade_id=db_class.eklesia_grade_id,
         student_count=count,
         created_at=db_class.created_at,
     )
