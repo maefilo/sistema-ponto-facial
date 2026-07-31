@@ -1,7 +1,7 @@
 import httpx
 import os
 import json
-from datetime import datetime
+from datetime import datetime, date
 
 
 EKLESIA_BASE = "https://gestaoweb.eklesiaonline.com.br/webapi/api"
@@ -34,6 +34,27 @@ def eklesia_headers(token: str) -> dict:
         "eks-igreja-selecionada": "1",
         "accept": "application/json",
     }
+
+
+async def eklesia_get_commitment_time(token: str, turma_id: int, grade_id: int, target_date: str) -> str:
+    """Get the commitment start time for a specific date from Eklesia grade schedule."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{EKLESIA_BASE}/ensino/EnsinoAgenda/ObterCompromissosDaGrade",
+            params={
+                "codTurma": turma_id,
+                "codGrade": grade_id,
+                "dataInicial": target_date,
+                "dataFinal": target_date,
+            },
+            headers=eklesia_headers(token),
+            timeout=15.0,
+        )
+        resp.raise_for_status()
+        commitments = resp.json()
+        if commitments:
+            return commitments[0].get("inicio", f"{target_date}T00:00:00")
+        return f"{target_date}T00:00:00"
 
 
 async def eklesia_get_presences(token: str, turma_id: int, grade_id: int) -> list:
@@ -87,7 +108,9 @@ async def sync_attendance_to_eklesia(
     present_students: list of {"codPessoa": int, "codEnsinoTurmaAluno": int}
     """
     token = await eklesia_login()
-    now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    today = date.today().isoformat()
+
+    commitment_time = await eklesia_get_commitment_time(token, turma_id, grade_id, today)
 
     existing = await eklesia_get_presences(token, turma_id, grade_id)
     pessoas_atuais_ids = [d["codigo"] for d in existing]
@@ -98,6 +121,6 @@ async def sync_attendance_to_eklesia(
         grade_id=grade_id,
         pessoas=present_students,
         pessoas_atuais_ids=pessoas_atuais_ids,
-        data=now,
+        data=commitment_time,
     )
     return result
