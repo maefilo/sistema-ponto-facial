@@ -728,7 +728,14 @@ async function handleCheckEmail() {
         setUserLabels('pass');
         showStep('loginStepAuth');
     } catch (err) {
-        showToast(err.data?.detail || 'Email não encontrado', 'error');
+        console.error('[DEBUG] checkEmail error:', err, JSON.stringify(err));
+        if (err.status === 404) {
+            showToast('Email não encontrado', 'error');
+        } else if (err.status === 503 || err.data?.detail?.includes('timeout')) {
+            showToast('Servidor iniciando, aguarde alguns segundos e tente novamente', 'warning');
+        } else {
+            showToast('Erro ao conectar. Aguarde 30s e tente novamente', 'error');
+        }
     }
 }
 
