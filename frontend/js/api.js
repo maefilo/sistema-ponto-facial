@@ -4,10 +4,14 @@ const API_BASE = window.location.hostname === 'localhost'
 
 const api = {
     async request(method, endpoint, data = null, isFormData = false) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 90000);
+
         const options = {
             method,
             headers: {},
             cache: 'no-store',
+            signal: controller.signal,
         };
 
         if (data) {
@@ -19,14 +23,23 @@ const api = {
             }
         }
 
-        const response = await fetch(`${API_BASE}${endpoint}`, options);
-        const result = await response.json();
+        try {
+            const response = await fetch(`${API_BASE}${endpoint}`, options);
+            const result = await response.json();
 
-        if (!response.ok) {
-            throw { status: response.status, data: result };
+            if (!response.ok) {
+                throw { status: response.status, data: result };
+            }
+
+            return result;
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                throw { status: 503, data: { detail: 'timeout' } };
+            }
+            throw err;
+        } finally {
+            clearTimeout(timeoutId);
         }
-
-        return result;
     },
 
     // Students
