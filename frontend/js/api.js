@@ -7,6 +7,7 @@ const api = {
         const options = {
             method,
             headers: {},
+            cache: 'no-store',
         };
 
         if (data) {

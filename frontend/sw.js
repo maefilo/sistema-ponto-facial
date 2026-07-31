@@ -1,4 +1,4 @@
-const CACHE_NAME = 'facecontrol-v1';
+const CACHE_NAME = 'facecontrol-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -33,22 +33,23 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch - network first, fallback to cache
+// Fetch - network first, fallback to cache (static assets only)
 self.addEventListener('fetch', (event) => {
-    // Skip API calls
-    if (event.request.url.includes('/students') ||
-        event.request.url.includes('/recognize') ||
-        event.request.url.includes('/attendances') ||
-        event.request.url.includes('/stats') ||
-        event.request.url.includes('/notify') ||
-        event.request.url.includes('/health')) {
+    const url = new URL(event.request.url);
+
+    // Skip ALL backend API calls
+    if (url.hostname !== location.hostname) {
+        return;
+    }
+
+    // Skip non-GET requests
+    if (event.request.method !== 'GET') {
         return;
     }
 
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // Clone the response
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then((cache) => {
                     cache.put(event.request, responseClone);
