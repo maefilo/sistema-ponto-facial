@@ -24,11 +24,8 @@ const api = {
         }
 
         try {
-            console.log(`[DEBUG] API ${method} ${API_BASE}${endpoint}`);
             const response = await fetch(`${API_BASE}${endpoint}`, options);
-            console.log(`[DEBUG] API response: ${response.status} ${response.statusText}`);
             const result = await response.json();
-            console.log(`[DEBUG] API result:`, JSON.stringify(result).substring(0, 200));
 
             if (!response.ok) {
                 throw { status: response.status, data: result };
@@ -36,7 +33,6 @@ const api = {
 
             return result;
         } catch (err) {
-            console.error(`[DEBUG] API error for ${method} ${endpoint}:`, err.name, err.message, err);
             if (err.name === 'AbortError') {
                 throw { status: 503, data: { detail: 'timeout' } };
             }

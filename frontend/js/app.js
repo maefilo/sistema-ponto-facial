@@ -728,7 +728,6 @@ async function handleCheckEmail() {
         setUserLabels('pass');
         showStep('loginStepAuth');
     } catch (err) {
-        console.error('[DEBUG] checkEmail error:', err, JSON.stringify(err));
         if (err.status === 404) {
             showToast('Email não encontrado', 'error');
         } else if (err.status === 503 || err.data?.detail?.includes('timeout')) {

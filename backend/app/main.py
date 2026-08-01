@@ -606,11 +606,7 @@ async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(ge
         commitment_time = await eklesia_get_commitment_time(
             token, db_class.eklesia_class_id, grade_id, today
         )
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning(f"[SYNC] turma={db_class.eklesia_class_id} grade={grade_id} data={commitment_time}")
-        logger.warning(f"[SYNC] pessoas_payload={pessoas_payload}")
-        salvar_result = await eklesia_salvar_presenca(
+        await eklesia_salvar_presenca(
             token=token,
             turma_id=db_class.eklesia_class_id,
             grade_id=grade_id,
@@ -618,7 +614,6 @@ async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(ge
             pessoas_atuais_ids=[],
             data=commitment_time,
         )
-        logger.warning(f"[SYNC] salvar_result={salvar_result}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao salvar no Eklesia: {str(e)}")
 

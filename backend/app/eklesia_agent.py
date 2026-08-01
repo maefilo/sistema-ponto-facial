@@ -88,9 +88,6 @@ async def eklesia_salvar_presenca(
         "codEnsinoTurma": turma_id,
         "data": data,
     }
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.warning(f"[EKLESIA SALVAR] Payload: {json.dumps(payload, default=str)}")
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f"{EKLESIA_BASE}/ensino/EnsinoTurmaAlunoGradePresenca/Salvar",
@@ -98,7 +95,6 @@ async def eklesia_salvar_presenca(
             headers=eklesia_headers(token),
             timeout=15.0,
         )
-        logger.warning(f"[EKLESIA SALVAR] Response: {resp.status_code} {resp.text[:500]}")
         resp.raise_for_status()
         return resp.json()
 
