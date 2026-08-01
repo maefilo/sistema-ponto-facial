@@ -602,7 +602,6 @@ async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(ge
 
     try:
         pessoas_payload = [{"codPessoa": m["codPessoa"], "codEnsinoTurmaAluno": m["codEnsinoTurmaAluno"]} for m in matched]
-        pessoas_atuais_ids = [p["codigo"] for p in eklesia_presences]
         from .eklesia_agent import eklesia_get_commitment_time
         commitment_time = await eklesia_get_commitment_time(
             token, db_class.eklesia_class_id, grade_id, today
@@ -611,13 +610,12 @@ async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(ge
         logger = logging.getLogger(__name__)
         logger.warning(f"[SYNC] turma={db_class.eklesia_class_id} grade={grade_id} data={commitment_time}")
         logger.warning(f"[SYNC] pessoas_payload={pessoas_payload}")
-        logger.warning(f"[SYNC] pessoas_atuais_ids={pessoas_atuais_ids}")
         salvar_result = await eklesia_salvar_presenca(
             token=token,
             turma_id=db_class.eklesia_class_id,
             grade_id=grade_id,
             pessoas=pessoas_payload,
-            pessoas_atuais_ids=pessoas_atuais_ids,
+            pessoas_atuais_ids=[],
             data=commitment_time,
         )
         logger.warning(f"[SYNC] salvar_result={salvar_result}")
