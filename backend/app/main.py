@@ -603,14 +603,17 @@ async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(ge
     try:
         pessoas_payload = [{"codPessoa": m["codPessoa"], "codEnsinoTurmaAluno": m["codEnsinoTurmaAluno"]} for m in matched]
         pessoas_atuais_ids = [p["codigo"] for p in eklesia_presences]
-        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        from .eklesia_agent import eklesia_get_commitment_time
+        commitment_time = await eklesia_get_commitment_time(
+            token, db_class.eklesia_class_id, grade_id, today
+        )
         await eklesia_salvar_presenca(
             token=token,
             turma_id=db_class.eklesia_class_id,
             grade_id=grade_id,
             pessoas=pessoas_payload,
             pessoas_atuais_ids=pessoas_atuais_ids,
-            data=now,
+            data=commitment_time,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao salvar no Eklesia: {str(e)}")
