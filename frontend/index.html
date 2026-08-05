@@ -59,12 +59,13 @@
                     <span class="user-avatar" id="faceUserAvatar"></span>
                     <span class="user-name" id="faceUserName"></span>
                 </div>
-                <div class="camera-container camera-small">
+                <div class="camera-container camera-small" style="position:relative;">
                     <video id="loginCameraFeed" autoplay playsinline></video>
                     <canvas id="loginCameraCanvas" style="display:none;"></canvas>
                     <div class="camera-overlay">
                         <div class="face-guide" style="width:140px;height:180px;"></div>
                     </div>
+                    <button type="button" class="btn-switch-camera" onclick="switchCamera('login')" title="Trocar câmera">🔄</button>
                 </div>
                 <button class="btn btn-primary btn-large" id="loginFaceBtn">
                     <span>📸</span> Reconhecer e Entrar
@@ -243,13 +244,14 @@
 
                 <!-- RECOGNIZE PAGE -->
                 <section class="page" id="page-recognize">
-                    <div class="camera-container">
+                    <div class="camera-container" style="position:relative;">
                         <video id="cameraFeed" autoplay playsinline></video>
                         <canvas id="cameraCanvas" style="display:none;"></canvas>
                         <div class="camera-overlay">
                             <div class="face-guide"></div>
                             <p class="camera-instruction">Posicione o rosto na moldura</p>
                         </div>
+                        <button type="button" class="btn-switch-camera" onclick="switchCamera('recognize')" title="Trocar câmera">🔄</button>
                     </div>
                     <div class="camera-controls">
                         <button class="btn btn-primary btn-large" id="captureBtn">
@@ -310,9 +312,10 @@
                                 <option value="">Selecione um aluno...</option>
                             </select>
                         </div>
-                        <div class="camera-container camera-small">
+                        <div class="camera-container camera-small" style="position:relative;">
                             <video id="faceCameraFeed" autoplay playsinline></video>
                             <canvas id="faceCameraCanvas" style="display:none;"></canvas>
+                            <button type="button" class="btn-switch-camera" onclick="switchCamera('register')" title="Trocar câmera">🔄</button>
                         </div>
                         <button class="btn btn-primary btn-large" id="captureFaceBtn">
                             <span>📸</span> Capturar e Registrar Rosto

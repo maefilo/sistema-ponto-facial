@@ -4,13 +4,17 @@ class CameraManager {
         this.canvas = canvasElement;
         this.ctx = this.canvas.getContext('2d');
         this.stream = null;
+        this.facingMode = 'user';
     }
 
     async start() {
         try {
+            if (this.stream) {
+                this.stream.getTracks().forEach(track => track.stop());
+            }
             this.stream = await navigator.mediaDevices.getUserMedia({
                 video: {
-                    facingMode: 'user',
+                    facingMode: this.facingMode,
                     width: { ideal: 1280 },
                     height: { ideal: 720 },
                 },
@@ -22,6 +26,11 @@ class CameraManager {
             console.error('Camera access error:', err);
             return false;
         }
+    }
+
+    async switchCamera() {
+        this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+        return await this.start();
     }
 
     stop() {

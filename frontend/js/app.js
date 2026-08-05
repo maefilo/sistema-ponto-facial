@@ -9,6 +9,14 @@ let adminToken = localStorage.getItem('adminToken');
 let adminData = null;
 let loginCamera = null;
 
+function switchCamera(context) {
+    let cam = null;
+    if (context === 'login') cam = loginCamera;
+    else if (context === 'recognize') cam = mainCamera;
+    else if (context === 'register') cam = faceCamera;
+    if (cam) cam.switchCamera();
+}
+
 // =============================================
 // NAVIGATION
 // =============================================
