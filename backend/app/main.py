@@ -44,6 +44,29 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+def load_faces_on_startup():
+    import numpy as np
+    import logging
+    logger = logging.getLogger(__name__)
+    db = next(get_db())
+    try:
+        embeddings = db.query(FaceEmbedding).all()
+        count = 0
+        for emb_record in embeddings:
+            embedding_list = json.loads(emb_record.embedding)
+            embedding = np.array(embedding_list, dtype=np.float32)
+            face_engine.index.add(embedding.reshape(1, -1))
+            face_engine.labels.append(emb_record.student_id)
+            count += 1
+        face_engine._save_index()
+        logger.warning(f"[STARTUP] Loaded {count} face embeddings from database")
+    except Exception as e:
+        logger.error(f"[STARTUP] Error loading faces: {e}")
+    finally:
+        db.close()
+
+
 @app.get("/")
 def root():
     return {"message": "Facial Attendance API - Running", "version": "2.1"}
