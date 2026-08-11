@@ -335,6 +335,48 @@
                     <div class="students-grid" id="studentsList">
                         <p class="empty-state">Nenhum aluno cadastrado</p>
                     </div>
+
+                    <!-- Edit Student Modal -->
+                    <div class="modal-overlay" id="editStudentModal" style="display:none;">
+                        <div class="modal">
+                            <div class="modal-header">
+                                <h3>Editar Aluno</h3>
+                                <button class="close-btn" onclick="closeEditStudentModal()">✕</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editStudentForm" onsubmit="handleEditStudent(event)">
+                                    <input type="hidden" id="editStudentId">
+                                    <div class="form-group">
+                                        <label for="editStudentName">Nome *</label>
+                                        <input type="text" id="editStudentName" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editStudentMatricula">Matrícula *</label>
+                                        <input type="text" id="editStudentMatricula" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editStudentPhone">Telefone *</label>
+                                        <input type="tel" id="editStudentPhone" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editStudentEmail">Email</label>
+                                        <input type="email" id="editStudentEmail">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editStudentParentPhone">Telefone do Responsável</label>
+                                        <input type="tel" id="editStudentParentPhone">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editStudentEklesia">Código Eklesia</label>
+                                        <input type="text" id="editStudentEklesia">
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-large">
+                                        <span>💾</span> Salvar Alterações
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- CLASSES PAGE -->

@@ -342,6 +342,9 @@ async function loadStudents() {
                         placeholder="Código" style="width:80px;border:1px solid #ddd;border-radius:4px;padding:2px 6px;font-size:12px;"></div>
                 </div>
                 <div class="student-actions">
+                    <button class="btn btn-primary" onclick='openEditStudentModal(${JSON.stringify(s).replace(/'/g, "&#39;")})'>
+                        Editar
+                    </button>
                     <button class="btn btn-danger" onclick="handleDeleteStudent(${s.id}, '${s.name.replace(/'/g, "\\'")}')">
                         Remover
                     </button>
@@ -375,6 +378,42 @@ async function updateEklesiaCode(studentId, code) {
         showToast('Código Eklesia atualizado', 'success');
     } catch {
         showToast('Erro ao atualizar código', 'error');
+    }
+}
+
+function openEditStudentModal(student) {
+    document.getElementById('editStudentId').value = student.id;
+    document.getElementById('editStudentName').value = student.name || '';
+    document.getElementById('editStudentMatricula').value = student.registration_number || '';
+    document.getElementById('editStudentPhone').value = student.phone || '';
+    document.getElementById('editStudentEmail').value = student.email || '';
+    document.getElementById('editStudentParentPhone').value = student.parent_phone || '';
+    document.getElementById('editStudentEklesia').value = student.eklesia_code || '';
+    document.getElementById('editStudentModal').style.display = 'flex';
+}
+
+function closeEditStudentModal() {
+    document.getElementById('editStudentModal').style.display = 'none';
+}
+
+async function handleEditStudent(e) {
+    e.preventDefault();
+    const id = document.getElementById('editStudentId').value;
+    const data = {
+        name: document.getElementById('editStudentName').value.trim(),
+        registration_number: document.getElementById('editStudentMatricula').value.trim(),
+        phone: document.getElementById('editStudentPhone').value.trim(),
+        email: document.getElementById('editStudentEmail').value.trim() || null,
+        parent_phone: document.getElementById('editStudentParentPhone').value.trim() || null,
+        eklesia_code: document.getElementById('editStudentEklesia').value.trim() || null,
+    };
+    try {
+        await api.updateStudent(id, data);
+        showToast('Aluno atualizado com sucesso', 'success');
+        closeEditStudentModal();
+        await loadStudents();
+    } catch {
+        showToast('Erro ao atualizar aluno', 'error');
     }
 }
 
