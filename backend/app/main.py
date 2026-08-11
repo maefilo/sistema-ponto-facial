@@ -647,3 +647,73 @@ async def sync_to_eklesia(class_id: int, grade_id: int, db: Session = Depends(ge
         "not_found": not_found,
         "not_present": not_present,
     }
+
+
+@app.post("/eklesia/sync-students")
+async def sync_students_from_eklesia(class_id: int, db: Session = Depends(get_db)):
+    from .eklesia_agent import eklesia_get_students
+
+    db_class = db.query(Class).filter(Class.id == class_id).first()
+    if not db_class:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    if not db_class.eklesia_class_id:
+        raise HTTPException(status_code=400, detail="Turma não tem ID Eklesia configurado")
+
+    try:
+        eklesia_students = await eklesia_get_students(db_class.eklesia_class_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar alunos do Eklesia: {str(e)}")
+
+    created = []
+    updated = []
+    errors = []
+
+    for s in eklesia_students:
+        cod_pessoa = str(s.get("codPessoa", ""))
+        nome = s.get("nome", "").strip()
+        celular = s.get("celular", "") or ""
+        email = s.get("email", "") or None
+
+        if not cod_pessoa or not nome:
+            continue
+
+        existing = db.query(Student).filter(Student.eklesia_code == cod_pessoa).first()
+
+        if existing:
+            changed = False
+            if existing.name != nome:
+                existing.name = nome
+                changed = True
+            if email and existing.email != email:
+                existing.email = email
+                changed = True
+            if celular and existing.phone != celular:
+                existing.phone = celular
+                changed = True
+            if changed:
+                db.commit()
+                updated.append({"name": nome, "eklesia_code": cod_pessoa})
+        else:
+            matricula = f"EK{cod_pessoa}"
+            phone_val = celular if celular else f"TEMP{cod_pessoa}"
+            try:
+                new_student = Student(
+                    name=nome,
+                    registration_number=matricula,
+                    phone=phone_val,
+                    email=email,
+                    eklesia_code=cod_pessoa,
+                )
+                db.add(new_student)
+                db.commit()
+                created.append({"name": nome, "eklesia_code": cod_pessoa})
+            except Exception:
+                db.rollback()
+                errors.append({"name": nome, "eklesia_code": cod_pessoa, "reason": "matrícula ou telefone duplicado"})
+
+    return {
+        "message": f"{len(created)} aluno(s) criado(s), {len(updated)} atualizado(s), {len(errors)} erro(s)",
+        "created": created,
+        "updated": updated,
+        "errors": errors,
+    }

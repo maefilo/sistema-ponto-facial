@@ -644,6 +644,48 @@ async function handleAddStudentToClass() {
     }
 }
 
+async function handleSyncEklesiaStudents() {
+    const resultDiv = document.getElementById('syncResult');
+    resultDiv.innerHTML = '<p style="color:var(--primary);">Sincronizando alunos do Eklesia...</p>';
+
+    try {
+        const result = await api.syncStudentsFromEklesia(currentClassId);
+        let html = `<p style="color:#059669;font-weight:600;">${result.message}</p>`;
+
+        if (result.created && result.created.length > 0) {
+            html += '<p><strong>Criados:</strong></p><ul>';
+            result.created.forEach(s => {
+                html += `<li>${s.name} (código: ${s.eklesia_code})</li>`;
+            });
+            html += '</ul>';
+        }
+
+        if (result.updated && result.updated.length > 0) {
+            html += '<p><strong>Atualizados:</strong></p><ul>';
+            result.updated.forEach(s => {
+                html += `<li>${s.name} (código: ${s.eklesia_code})</li>`;
+            });
+            html += '</ul>';
+        }
+
+        if (result.errors && result.errors.length > 0) {
+            html += '<p style="color:#dc2626;"><strong>Erros:</strong></p><ul>';
+            result.errors.forEach(s => {
+                html += `<li>${s.name}: ${s.reason}</li>`;
+            });
+            html += '</ul>';
+        }
+
+        resultDiv.innerHTML = html;
+        showToast(result.message, 'success');
+        await loadStudents();
+        await loadClassStudents();
+    } catch (err) {
+        resultDiv.innerHTML = `<p style="color:#dc2626;">${err.data?.detail || 'Erro ao sincronizar alunos'}</p>`;
+        showToast(err.data?.detail || 'Erro ao sincronizar alunos', 'error');
+    }
+}
+
 async function handleSyncEklesia() {
     const gradeId = document.getElementById('modalTrimestre').value;
     if (!gradeId) {

@@ -124,3 +124,25 @@ async def sync_attendance_to_eklesia(
         data=commitment_time,
     )
     return result
+
+
+async def eklesia_get_students(turma_id: int) -> list:
+    token = await eklesia_login()
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{EKLESIA_BASE}/ensino/EnsinoTurmaAluno/ObterAlunosPresenca",
+            params={
+                "codigoEnsinoTurma": turma_id,
+                "dataPresenca": f"{date.today().isoformat()}T00:00:00",
+                "skip": 0,
+                "limit": 500,
+                "searchTerm": "",
+                "searchableColumns": "CodPessoa",
+                "searchableColumns": "Nome",
+            },
+            headers=eklesia_headers(token),
+            timeout=30.0,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("linhas", [])
