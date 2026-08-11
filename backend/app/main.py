@@ -80,9 +80,10 @@ def health():
 @app.post("/students", response_model=StudentResponse)
 def create_student(student: StudentCreate, db: Session = Depends(get_db)):
     existing = db.query(Student).filter(
-        (Student.phone == student.phone)
-        | (Student.registration_number == student.registration_number)
+        Student.registration_number == student.registration_number
     ).first()
+    if student.phone:
+        existing = existing or db.query(Student).filter(Student.phone == student.phone).first()
     if existing:
         raise HTTPException(status_code=400, detail="Telefone ou matrícula já cadastrado")
     db_student = Student(**student.model_dump())

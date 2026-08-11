@@ -17,7 +17,7 @@ class Student(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, nullable=True)
-    phone = Column(String(20), unique=True, nullable=False)
+    phone = Column(String(20), unique=True, nullable=True)
     registration_number = Column(String(50), unique=True, nullable=False)
     parent_phone = Column(String(20), nullable=True)
     eklesia_code = Column(String(50), nullable=True)

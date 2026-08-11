@@ -6,7 +6,7 @@ from typing import Optional
 class StudentBase(BaseModel):
     name: str
     email: Optional[str] = None
-    phone: str
+    phone: Optional[str] = None
     registration_number: str
     parent_phone: Optional[str] = None
     eklesia_code: Optional[str] = None
